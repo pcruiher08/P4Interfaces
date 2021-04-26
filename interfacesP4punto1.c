@@ -64,7 +64,7 @@
 // *****************************************************************************
 
 uint8_t CACHE_ALIGN switchPromptUSB[] = "\r\nPUSH BUTTON PRESSED";
-uint8_t CACHE_ALIGN escribe[] = "                                 ";
+uint8_t CACHE_ALIGN miString[] = "                                 ";
 
 uint8_t CACHE_ALIGN cdcReadBuffer[APP_READ_BUFFER_SIZE];
 uint8_t CACHE_ALIGN cdcWriteBuffer[APP_READ_BUFFER_SIZE];
@@ -450,6 +450,20 @@ void APP_Initialize(void)
   Remarks:
     See prototype in app.h.
  */
+
+
+#define TRANS_COUNT 8
+#define EDO_COUNT 9
+
+char chr=0;
+int acum1=0;
+int acum2=0;
+int res=0;
+enum Oper{Suma,Resta,Mult,Div};
+enum Oper oper;
+int edo=0;
+int edoAnt=0;
+int trans=0;
 int startIndex = 0, endIndex = 0; 
 char numeroLeido[10];
 char numeroAEscribir[11];
@@ -458,29 +472,190 @@ int miPrintf_flag = 0;
 
 bool estoyListo = false;
 int cuantosDigitosVan = 0;
+char auxString[] = "                                 ";
 
-void sumaYPrepara(uint8_t ese[], int cuantos){
-    
-    //caso x9
-    //caso 99
-    if(ese[1] == '9' && ese[0] == '9'){
-        //escribe[2] = '\n';
-        cuantos++;
-        ese[0] = '1';
-        ese[1] = '0';
-        ese[2] = '0';
-        ese[3] = '\n';
-        //USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0, &appData.writeTransferHandle, "P\n", 2, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);    
-    }else if(ese[1] == '9'){//caso x9
-        ese[0]++;
-        ese[2] = '\n';
-    }else{//xx
-        ese[1]++;
-        ese[2] = '\n';
-    }
+					//0-->Inválida
+					//6-->Digito
+					//7-->Operador
+int chrTrans[TRANS_COUNT]=
+					{ 0,'(',')','=',  8, 27, 6 , 7};
+int mtzTrans[EDO_COUNT][TRANS_COUNT]={
+					{ 0, 1 , 0 , 0 , 0 , 0 , 0 , 0},
+					{ 1, 1 , 1 , 1 , 99, 99, 2 , 1},
+					{ 2, 2 , 2 , 2 , 99, 99, 3 , 4},
+					{ 3, 2 , 2 , 2 , 99, 99, 2 , 2},
+					{ 4, 4 , 4 , 4 , 99, 99, 5 , 4},
+					{ 5, 5 , 7 , 5 , 99, 99, 6 , 5},
+					{ 6, 5 , 5 , 5 , 99, 99, 5 , 5},
+					{ 7, 7 , 7 , 8 , 99, 99, 7 , 7},
+					{ 8, 0 , 0 , 0 , 0 , 0 , 0 , 0}};
+
+void miPrintf(char* s, int cont) {
+    int i;
+    for (i=0;i<cont;i++)
+        miString[i]=s[i];
+    miPrintf_flag=1;
+    miStringCont=cont;
 }
                 
-                
+
+int calcTrans(char ch) {
+	int tran=0;
+	if ((ch>='0')&&(ch<='9'))	//Digito
+		return(6);
+	switch (ch) {
+		case'+':
+		case'-':
+		case'*':
+		case'/':
+				return(7);
+	}
+	for (tran=5;tran>0;tran--)
+		if (ch==chrTrans[tran])
+			break;
+	return(tran);
+}
+
+int sigEdo(int ed, int tran) {
+	return(mtzTrans[ed][tran]);
+}
+
+int ejecutaEdo(int ed) {
+    static int i=0;
+    static int negativoFlag=0;
+    static int digitosCont=0;
+    static int auxRes=0;
+	switch(ed) {
+		case 0:
+				break;
+		case 1:
+                //BSP_LEDOff( APP_USB_LED_1);
+                //BSP_LEDOff( APP_USB_LED_2);
+                //BSP_LEDOff( APP_USB_LED_3);
+                LED_Off();
+                LED2_Off();
+                LED3_Off();
+
+                acum1=0;
+				miPrintf(&chr,1);
+				break;
+		case 2:
+				miPrintf(&chr,1);
+				acum1*=10;
+				acum1+=(chr-'0');
+				break;
+		case 3:
+				miPrintf(&chr,1);
+				acum1*=10;
+				acum1+=(chr-'0');
+				return(2);
+		case 4:
+                LED_On();
+
+                //BSP_LEDOn(  APP_USB_LED_1);
+                LED2_Off();
+                //BSP_LEDOff( APP_USB_LED_2);
+                LED3_Off();
+                //BSP_LEDOff( APP_USB_LED_3);
+				miPrintf(&chr,1);
+				switch (chr) {
+					case'+':
+							oper=Suma;
+							break;
+					case'-':
+							oper=Resta;
+							break;
+					case'*':
+							oper=Mult;
+							break;
+					case'/':
+							oper=Div;
+							break;
+				}
+				acum2=0;	//Preparar la entrada al estado 4
+				break;
+		case 5:
+                LED_Off();
+                LED2_On();
+                LED3_Off();
+                //BSP_LEDOff( APP_USB_LED_1);
+                //BSP_LEDOn(  APP_USB_LED_2);
+                //BSP_LEDOff( APP_USB_LED_3);
+				miPrintf(&chr,1);
+				acum2*=10;
+				acum2=(chr-'0');
+				break;
+		case 6:
+				miPrintf(&chr,1);
+				acum2*=10;
+				acum2+=(chr-'0');
+				return(5);
+		case 7:
+                LED_Off();
+                LED2_Off();
+                LED3_On();
+                //BSP_LEDOff( APP_USB_LED_1);
+                //BSP_LEDOff( APP_USB_LED_2);
+                //BSP_LEDOn(  APP_USB_LED_3);
+				miPrintf(&chr,1);
+				break;
+		case 8:
+                LED_On();
+                LED2_On();
+                LED3_On();
+                //BSP_LEDOn( APP_USB_LED_1);
+                //BSP_LEDOn( APP_USB_LED_2);
+                //BSP_LEDOn( APP_USB_LED_3);
+				switch(oper) {
+					case Suma:
+							res=acum1+acum2;
+							break;
+					case Resta:
+							res=acum1-acum2;
+							break;
+					case Mult:
+							res=acum1*acum2;
+							break;
+					case Div:
+							if (acum2)
+								res=acum1/acum2;
+							else
+								res=-1;
+							break;
+				}
+				//printf("%d\n",res);
+                if (res<0) {
+                    negativoFlag=1;
+                    res=-1*res;
+                } else {
+                    negativoFlag=0;
+                }
+                auxRes=res;
+                digitosCont=0;
+                do {
+                    auxRes/=10;
+                    digitosCont++;
+                } while(auxRes);
+                i=digitosCont;
+                do {
+                    auxString[negativoFlag+i]='0'+(res%10);
+                    res/=10;
+                } while(--i>=0);
+                auxString[0]='=';
+                if (negativoFlag) {
+                    auxString[1]='-';
+                }
+                auxString[digitosCont+1+negativoFlag]=0x0D; //Carriage return
+                miPrintf(&auxString[0],digitosCont+1+negativoFlag+1);
+				return(0);
+		case 99:
+				//printf("\n<<<Captura cancelada>>>\n");
+				return(0);	//Estado aceptor, rompe la rutina y marca estado de salida
+	}
+	return(edo);	//Para estados no aceptores regresar el estado ejecutado
+}
+
+
 void APP_Tasks(void)
 {
     /* Update the application state machine based
@@ -601,24 +776,14 @@ void APP_Tasks(void)
                     if((appData.cdcReadBuffer[i] != 0x0A) && (appData.cdcReadBuffer[i] != 0x0D) /*&& (appData.cdcReadBuffer[i] >= '0' && appData.cdcReadBuffer[i] <= '9')*/ )
                     {
                         
-                      appData.cdcWriteBuffer[i] = appData.cdcReadBuffer[i];
-                        escribe[cuantosDigitosVan] = appData.cdcReadBuffer[i];
-                        //USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0, &appData.writeTransferHandle, escribe, 2, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
-                        //estoyListo = false;                        
-                        cuantosDigitosVan++;
-                     
-                        if(cuantosDigitosVan > 0){
-                            if(cuantosDigitosVan == 2){
-                                sumaYPrepara(escribe, cuantosDigitosVan);
-                                //escribe[2] = '\n';
-                                USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0, &appData.writeTransferHandle, escribe, cuantosDigitosVan + 1, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
-                                cuantosDigitosVan = 0;
-                            }else{
-                                USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0, &appData.writeTransferHandle, "\r", cuantosDigitosVan, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
-
-                            }
-                            
-                         
+                        //appData.readBuffer[i] = appData.readBuffer[i] + 1;
+                        chr=appData.cdcReadBuffer[i];
+                        trans=calcTrans(chr);	//Calcular la transición según la entrada del teclado
+                        if (trans) {			//Validar por transición valida (la transición 0 es inválida)
+                            edoAnt=edo;					//Guardar el estado anterior
+                            edo=sigEdo(edoAnt,trans);	//Calcular el siguiente estado
+                            if (edoAnt!=edo)			//Solo si hay cambio de estado hay que ...
+                                edo=ejecutaEdo(edo);	// ... ejecutar el nuevo estado y asignar estado de continuidad
                         }
                         
               
@@ -626,7 +791,12 @@ void APP_Tasks(void)
                     } 
                     
                 }
-
+                if (miPrintf_flag) {
+                    USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0, &appData.writeTransferHandle,
+                                            miString, miStringCont, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
+                    miPrintf_flag=0;
+                    miStringCont=0;
+                }
               
             }
 
