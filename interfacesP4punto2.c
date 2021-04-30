@@ -92,7 +92,6 @@ APP_DATA appData;
 // *****************************************************************************
 // *****************************************************************************
 
-uint8_t CACHE_ALIGN miString[] = "                                 ";
 
 #define TRANS_COUNT 8
 #define EDO_COUNT 17
@@ -109,10 +108,11 @@ int edo=0;
 int edoAnt=0;
 int trans=0;
 int miPrintf_flag=0;
-int miStringCont=0;
-char auxString[] = "                                 ";
+int cuentaString=0;
+char otroString[] = "                                 ";
 int isNeg1 = 0;
 int isNeg2 = 0;
+uint8_t CACHE_ALIGN miString[] = "                                 ";
 
 
 int chrTrans[TRANS_COUNT]=
@@ -141,7 +141,7 @@ void miPrintf(char* s, int cont) {
     for (i=0;i<cont;i++)
         miString[i]=s[i];
     miPrintf_flag=1;
-    miStringCont=cont;
+    cuentaString=cont;
 }
 
 int calcTrans(char chr2) {
@@ -167,8 +167,6 @@ int sigEdo(int edo2, int trans2) {
 }
 
 int ejecutaEdo(int edo2) {
-    
-    //static int i=0;
     static int negativoFlag=0;
     static int digitosCont=0;
     static int auxRes=0;
@@ -220,7 +218,7 @@ int ejecutaEdo(int edo2) {
 					oper=Div;
 					break;
 			}
-			acum2=0.0;	//Preparar la entrada al estado 4
+			acum2=0.0;
 			mult = 1.0;
 			break;
         case 9:
@@ -251,9 +249,7 @@ int ejecutaEdo(int edo2) {
 				LED_On();
                 LED2_On();
                 LED3_On();
-                
-                //miPrintf(&chr,1);
-                
+                                
                 if(isNeg1)
                     acum1 *= -1;
                 if(isNeg2)
@@ -276,10 +272,8 @@ int ejecutaEdo(int edo2) {
 								res=-1;
 							break;
 				}
-				//printf("%d\n",res);
                 if (res<0) {
                     negativoFlag=1;
-                    //res=-1*res;
                 } else {
                     negativoFlag=0;
                 }
@@ -289,21 +283,12 @@ int ejecutaEdo(int edo2) {
                     auxRes/=10;
                     digitosCont++;
                 } while(auxRes);
-               /* i=digitosCont;
-                do {
-                    auxString[negativoFlag+i]='0'+((int)res%10);
-                    res/=10;
-                } while(--i>=0);
-                auxString[0]='=';
-                if (negativoFlag) {
-                    auxString[1]='-';
-                }*/
-                snprintf(auxString, sizeof(auxString), "=%f", res);
-                auxString[digitosCont+3+negativoFlag]=0x0D; //Carriage return
-                miPrintf(&auxString[0],digitosCont+3+negativoFlag+1);
+              
+                snprintf(otroString, sizeof(otroString), "=%f", res);
+                otroString[digitosCont+3+negativoFlag]=0x0D; //Carriage return
+                miPrintf(&otroString[0],digitosCont+3+negativoFlag+1);
 				return(0);
 		case 99:
-				//printf("\n %c <<<Captura cancelada>>>\n", chr);
 				return(0);	//Estado aceptor, rompe la rutina y marca estado de salida
 				break;
 	}
@@ -799,9 +784,9 @@ void APP_Tasks(void)
                 
                 if (miPrintf_flag) {
                     USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0, &appData.writeTransferHandle,
-                                            miString, miStringCont, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
+                                            miString, cuentaString, USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
                     miPrintf_flag=0;
-                    miStringCont=0;
+                    cuentaString=0;
                 }
                 
                 /*
