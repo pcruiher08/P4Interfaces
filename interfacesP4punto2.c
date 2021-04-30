@@ -118,25 +118,26 @@ uint8_t CACHE_ALIGN miString[] = "                                 ";
 
 
 int chrTrans[TRANS_COUNT]=
-					{ 0,'(',')','=', '.', 5 , 6, '-'};
+					{ 0,'(',')','=', '.', 5 , 16, '-'};
 int mtzTrans[EDO_COUNT][TRANS_COUNT]={
-					{ 0, 1 , 0 , 0 , 0 , 0, 0, 0},
-                    { 1, 1 , 1 , 1 , 1,  3, 1, 2},
-                    { 2, 2 , 2 , 2 , 2,  3, 2, 2},
-					{ 3, 3 , 3 , 3 , 5,  4, 3, 3},
-					{ 4, 3 , 3 , 3 , 3,  3, 3, 3},
-					{ 5, 5 , 5 , 5 , 5,  6, 5, 5},
-					{ 6, 6 , 6 , 6 , 6,  7, 8, 8},
-					{ 7, 6 , 6 , 6 , 6,  6, 6, 6},
-					{ 8, 8 , 8 , 8 , 8,  10, 8, 9},
-                    { 9, 9 , 9 , 9 , 9,  10, 9, 9},
-					{ 10, 10 , 10 , 10 , 12, 11, 10, 10},
-					{ 11, 10 , 10 , 10 , 10, 10, 10, 10},
-					{ 12, 12 , 12 , 12 , 12, 13, 12, 12},
-					{ 13, 13 , 15 , 13 , 13, 14, 13, 13},
-					{ 14, 13 , 13 , 13 , 13, 13, 13, 13},
-					{ 15, 15 , 15 , 16 , 15, 15, 15, 15},
-					{ 16, 0 , 0 , 0 , 0,  0, 0 , 0}};
+					{ 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0 },
+                    { 1 , 1 , 1 , 1 , 1 , 3 , 1 , 2 },
+                    { 2 , 2 , 2 , 2 , 2 , 3 , 2 , 2 },
+					{ 3 , 3 , 3 , 3 , 5 , 4 , 3 , 3 },
+					{ 4 , 3 , 3 , 3 , 3 , 3 , 3 , 3 },
+					{ 5 , 5 , 5 , 5 , 5 , 16 , 5 , 5 },
+					{ 16 , 16 , 16 , 16 , 16 , 7 , 8 , 8 },
+					{ 7 , 16 , 16 , 16 , 16 , 16 , 16 , 16 },
+					{ 8 , 8 , 8 , 8 , 8 , 10 , 8 , 9},
+                    { 9 , 9 , 9 , 9 , 9 , 10 , 9 , 9},
+					{ 10 , 10 , 10 , 10 , 66 , 39 , 10 , 10},
+					{ 39 , 10 , 10 , 10 , 10 , 10 , 10 , 10},
+					{ 66 , 66 , 66 , 66 , 66 , 33 , 66 , 66},
+					{ 33 , 33 , 45 , 33 , 33 , 14 , 33 , 33},
+					{ 14 , 33 , 33 , 33 , 33 , 33 , 33 , 33},
+					{ 45 , 45 , 45 , 88 , 45 , 45 , 45 , 45},
+					{ 88 , 0 , 0 , 0 , 0 ,  0 , 0 , 0}
+                    };
 
 void miPrintf(char* s, int cont) {
     int i;
@@ -154,7 +155,7 @@ int calcTrans(char chr2) {
 		case'+':
 		case'*':
 		case'/':
-				return(6);
+				return(16);
 	}
     if(chr2 == '-')
         return(7);
@@ -203,12 +204,12 @@ int ejecutaEdo(int edo2) {
 		case 5:
 			miPrintf(&chr,1);
 			break;
-		case 6:
+		case 16:
 		case 7:
 			miPrintf(&chr,1);
 			mult*=(float)0.1;
 			numeroA+=(chr-'0')*mult;
-			return 6;
+			return 16;
 			break;
 		case 8:
 
@@ -247,13 +248,13 @@ int ejecutaEdo(int edo2) {
             numeroBEsNegativo = 1;
             break;
 		case 10:
-		case 11:
+		case 39:
 			miPrintf(&chr,1);
 			numeroB*=10;
 			numeroB+=(chr-'0');
 			return(10);
 			break;
-		case 12:
+		case 66:
             LED_Off();
             LED2_Off();
             LED3_On();
@@ -262,14 +263,14 @@ int ejecutaEdo(int edo2) {
             //BSP_LEDOn(  APP_USB_LED_3);
 			miPrintf(&chr,1);
 			break;
-		case 13:
+		case 33:
 		case 14:
 			miPrintf(&chr,1);
 			mult*=(float)0.1;
 			numeroB+=(chr-'0')*mult;
-			return 13;
+			return 33;
 			break;
-		case 15:
+		case 45:
                 LED_Off();
                 LED2_Off();
                 LED3_On();
@@ -279,7 +280,7 @@ int ejecutaEdo(int edo2) {
                 miPrintf(&chr,1);
 				miPrintf(&chr,1);
 				break;
-		case 16:
+		case 88:
 				LED_On();
                 LED2_On();
                 LED3_On();
