@@ -54,6 +54,7 @@
 // *****************************************************************************
 
 #include "app.h"
+#include <cmath>
 
 
 // *****************************************************************************
@@ -569,6 +570,7 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
 			return 16;
 			break;
 		case 8:
+            LED_On();
 
             //BSP_LEDOn(  APP_USB_LED_1);
             LED2_Off();
@@ -592,24 +594,25 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
 					break;
 			}
 			numeroB = 0.0;
-			producto = 1.0;
+			producto = 1.0; //perparar la entrada pero ahora es en otro estado
 			break;
         case 9:
+
+            miPrintf(&chr,1);
+            numeroBEsNegativo = 1;
+            break;
+		case 10:
+		case 39:
             LED_Off();
             LED2_On();
             LED3_Off();
             //BSP_LEDOff( APP_USB_LED_1);
             //BSP_LEDOn(  APP_USB_LED_2);
             //BSP_LEDOff( APP_USB_LED_3);
-            miPrintf(&chr,1);
-            numeroBEsNegativo = 1;
-            break;
-		case 10:
-		case 39:
 			miPrintf(&chr,1);
 			numeroB*=10;
 			numeroB+=(chr-'0');
-			return(10);
+			return(10); //antes estado 5
 			break;
 		case 66:
             LED_Off();
@@ -633,7 +636,6 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
                 //BSP_LEDOff( APP_USB_LED_1);
                 //BSP_LEDOff( APP_USB_LED_2);
                 //BSP_LEDOn(  APP_USB_LED_3);
-                miPrintf(&chr,1);
 				miPrintf(&chr,1);
 				break;
 		case 88:
@@ -658,7 +660,7 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
 					case Resta:
 							res=numeroA-numeroB;
 							break;
-					case producto:
+					case Mult:
 							res=numeroA*numeroB;
 							break;
 					case Div:
@@ -680,6 +682,15 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
                     auxRes/=10;
                     digitosCont++;
                 } while(auxRes);
+                i=digitosCont;
+                do {
+                    auxString[negativoFlag+i]='0'+fmod(res,10);
+                    res/=10;
+                } while(--i>=0);
+                auxString[0]='=';
+                if (negativoFlag) {
+                    auxString[1]='-';
+                }
                 //agregar que imprima los puntos para float y el float
                 snprintf(otroString, sizeof(otroString), "=%f", res);
                 otroString[digitosCont+3+negativoFlag]=0x0D; //Carriage return
