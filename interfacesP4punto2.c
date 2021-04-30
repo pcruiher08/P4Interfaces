@@ -93,249 +93,6 @@ APP_DATA appData;
 // *****************************************************************************
 
 
-#define TRANS_COUNT 8
-#define EDO_COUNT 17
-
-char chr=0;
-float numeroA=0.0;
-float numeroB=0.0;
-float res=0.0;
-float mult=1.0;
-enum Oper{Suma,Resta,Mult,Div};
-enum Oper oper;
-int startIndex = 0, endIndex = 0; 
-char numeroLeido[10];
-char numeroAEscribir[11];
-int edo=0;
-int edoAnt=0;
-int trans=0;
-int miPrintf_flag=0;
-int cuentaString=0;
-char otroString[] = "                                 ";
-int numeroAEsNegativo = 0;
-int numeroBEsNegativo = 0;
-uint8_t CACHE_ALIGN miString[] = "                                 ";
-
-
-int chrTrans[TRANS_COUNT]=
-					{ 0,'(',')','=', '.', 5 , 16, '-'};
-int mtzTrans[EDO_COUNT][TRANS_COUNT]={
-					{ 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0 },
-                    { 1 , 1 , 1 , 1 , 1 , 3 , 1 , 2 },
-                    { 2 , 2 , 2 , 2 , 2 , 3 , 2 , 2 },
-					{ 3 , 3 , 3 , 3 , 5 , 4 , 3 , 3 },
-					{ 4 , 3 , 3 , 3 , 3 , 3 , 3 , 3 },
-					{ 5 , 5 , 5 , 5 , 5 , 16 , 5 , 5 },
-					{ 16 , 16 , 16 , 16 , 16 , 7 , 8 , 8 },
-					{ 7 , 16 , 16 , 16 , 16 , 16 , 16 , 16 },
-					{ 8 , 8 , 8 , 8 , 8 , 10 , 8 , 9},
-                    { 9 , 9 , 9 , 9 , 9 , 10 , 9 , 9},
-					{ 10 , 10 , 10 , 10 , 66 , 39 , 10 , 10},
-					{ 39 , 10 , 10 , 10 , 10 , 10 , 10 , 10},
-					{ 66 , 66 , 66 , 66 , 66 , 33 , 66 , 66},
-					{ 33 , 33 , 45 , 33 , 33 , 14 , 33 , 33},
-					{ 14 , 33 , 33 , 33 , 33 , 33 , 33 , 33},
-					{ 45 , 45 , 45 , 88 , 45 , 45 , 45 , 45},
-					{ 88 , 0 , 0 , 0 , 0 ,  0 , 0 , 0}
-                    };
-
-void miPrintf(char* s, int cont) {
-    int i;
-    for (i=0;i<cont;i++)
-        miString[i]=s[i];
-    miPrintf_flag=1;
-    cuentaString=cont;
-}
-
-int calcTrans(char chr2) {
-	int trans2=0;
-	if ((chr2>='0')&&(chr2<='9'))	//Digito
-		return(5);
-	switch (chr2) {
-		case'+':
-		case'*':
-		case'/':
-				return(16);
-	}
-    if(chr2 == '-')
-        return(7);
-	for (trans2=4;trans2>0;trans2--)
-		if (chr2==chrTrans[trans2])
-			break;
-	return(trans2);
-}
-
-int sigEdo(int edo2, int trans2) {
-	return(mtzTrans[edo2][trans2]);
-}
-
-int ejecutaEdo(int edo2) {
-    static int negativoFlag=0;
-    static int digitosCont=0;
-    static int auxRes=0;
-    
-	switch(edo2) {
-		case 0:
-			break;
-		case 1:
-            //BSP_LEDOff( APP_USB_LED_1);
-            //BSP_LEDOff( APP_USB_LED_2);
-            //BSP_LEDOff( APP_USB_LED_3);
-            LED_Off();
-            LED2_Off();
-            LED3_Off();
-			numeroA=0.0;
-            mult = 1.0;
-            numeroAEsNegativo = 0;
-            numeroBEsNegativo = 0;
-			miPrintf(&chr,1);
-			break;
-        case 2:
-            miPrintf(&chr,1);
-            numeroAEsNegativo = 1;
-            break;
-		case 3:
-		case 4:
-			miPrintf(&chr,1);
-			numeroA*=10;
-			numeroA+=(chr-'0');
-			return(3);
-			break;
-		case 5:
-			miPrintf(&chr,1);
-			break;
-		case 16:
-		case 7:
-			miPrintf(&chr,1);
-			mult*=(float)0.1;
-			numeroA+=(chr-'0')*mult;
-			return 16;
-			break;
-		case 8:
-
-            //BSP_LEDOn(  APP_USB_LED_1);
-            LED2_Off();
-            //BSP_LEDOff( APP_USB_LED_2);
-            LED3_Off();
-            //BSP_LEDOff( APP_USB_LED_3);
-            miPrintf(&chr,1);
-			miPrintf(&chr,1);
-			switch (chr) {
-				case'+':
-					oper=Suma;
-					break;
-				case'-':
-					oper=Resta;
-					break;
-				case'*':
-					oper=Mult;
-					break;
-				case'/':
-					oper=Div;
-					break;
-			}
-			numeroB=0.0;
-			mult = 1.0;
-			break;
-        case 9:
-            LED_Off();
-            LED2_On();
-            LED3_Off();
-            //BSP_LEDOff( APP_USB_LED_1);
-            //BSP_LEDOn(  APP_USB_LED_2);
-            //BSP_LEDOff( APP_USB_LED_3);
-            miPrintf(&chr,1);
-            numeroBEsNegativo = 1;
-            break;
-		case 10:
-		case 39:
-			miPrintf(&chr,1);
-			numeroB*=10;
-			numeroB+=(chr-'0');
-			return(10);
-			break;
-		case 66:
-            LED_Off();
-            LED2_Off();
-            LED3_On();
-            //BSP_LEDOff( APP_USB_LED_1);
-            //BSP_LEDOff( APP_USB_LED_2);
-            //BSP_LEDOn(  APP_USB_LED_3);
-			miPrintf(&chr,1);
-			break;
-		case 33:
-		case 14:
-			miPrintf(&chr,1);
-			mult*=(float)0.1;
-			numeroB+=(chr-'0')*mult;
-			return 33;
-			break;
-		case 45:
-                LED_Off();
-                LED2_Off();
-                LED3_On();
-                //BSP_LEDOff( APP_USB_LED_1);
-                //BSP_LEDOff( APP_USB_LED_2);
-                //BSP_LEDOn(  APP_USB_LED_3);
-                miPrintf(&chr,1);
-				miPrintf(&chr,1);
-				break;
-		case 88:
-				LED_On();
-                LED2_On();
-                LED3_On();
-                //BSP_LEDOn( APP_USB_LED_1);
-                //BSP_LEDOn( APP_USB_LED_2);
-                //BSP_LEDOn( APP_USB_LED_3);                                
-                if(numeroAEsNegativo){
-                    numeroA = numeroA * -1;
-                }
-
-                if(numeroBEsNegativo){
-                    numeroB = numeroB * -1;
-                }
-                 
-				switch(oper) {
-					case Suma:
-							res=numeroA+numeroB;
-							break;
-					case Resta:
-							res=numeroA-numeroB;
-							break;
-					case Mult:
-							res=numeroA*numeroB;
-							break;
-					case Div:
-							if (numeroB)
-								res=numeroA/numeroB;
-							else
-								res=-1;
-							break;
-				}
-				//printf("%d\n",res);
-                if (res<0) {
-                    negativoFlag=1;
-                } else {
-                    negativoFlag=0;
-                }
-                auxRes=res;
-                digitosCont=0;
-                do {
-                    auxRes/=10;
-                    digitosCont++;
-                } while(auxRes);
-                //agregar que imprima los puntos para float y el float
-                snprintf(otroString, sizeof(otroString), "=%f", res);
-                otroString[digitosCont+3+negativoFlag]=0x0D; //Carriage return
-                miPrintf(&otroString[0],digitosCont+3+negativoFlag+1);
-				return(0);
-		case 99://nunca entra
-        				//printf("\n<<<Captura cancelada>>>\n");
-				return(0);	//Estado aceptor, rompe la rutina y marca estado de salida
-				break;
-	}
-	return(edo2);	//Para estados no aceptores regresar el estado ejecutado
-}
 
 /*******************************************************
  * USB CDC Device Events - Application Event Handler
@@ -691,6 +448,252 @@ void APP_Initialize(void)
   Remarks:
     See prototype in app.h.
  */
+
+
+#define TRANS_COUNT 8
+#define EDO_COUNT 18
+
+char chr=0;
+float numeroA=0.0;
+float numeroB=0.0;
+float res=0.0;
+float mult=1.0;
+enum Oper{Suma,Resta,Mult,Div};
+enum Oper oper;
+int startIndex = 0, endIndex = 0; 
+char numeroLeido[10];
+char numeroAEscribir[11];
+int edo=0;
+int edoAnt=0;
+int trans=0;
+int miPrintf_flag=0;
+int cuentaString=0;
+char otroString[] = "                                 ";
+int numeroAEsNegativo = 0;
+int numeroBEsNegativo = 0;
+uint8_t CACHE_ALIGN miString[] = "                                 ";
+
+
+int chrTrans[TRANS_COUNT]=
+					{ 0,'(',')','=', '.', 5 , 16, '-'};
+int mtzTrans[EDO_COUNT][TRANS_COUNT]={
+					{ 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0 },
+                    { 1 , 1 , 1 , 1 , 1 , 3 , 1 , 2 },
+                    { 2 , 2 , 2 , 2 , 2 , 3 , 2 , 2 },
+					{ 3 , 3 , 3 , 3 , 5 , 4 , 3 , 3 },
+					{ 4 , 3 , 3 , 3 , 3 , 3 , 3 , 3 },
+					{ 5 , 5 , 5 , 5 , 5 , 16 , 5 , 5 },
+					{ 16 , 16 , 16 , 16 , 16 , 7 , 8 , 8 },//DIVISION
+					{ 7 , 16 , 16 , 16 , 16 , 16 , 16 , 16 },
+					{ 8 , 8 , 8 , 8 , 8 , 10 , 8 , 9 },
+                    { 9 , 9 , 9 , 9 , 9 , 10 , 9 , 9 },
+					{ 10 , 10 , 10 , 10 , 66 , 39 , 10 , 10 },
+					{ 39 , 10 , 10 , 10 , 10 , 10 , 10 , 10 },
+					{ 66 , 66 , 66 , 66 , 66 , 33 , 66 , 66 },
+					{ 33 , 33 , 45 , 33 , 33 , 14 , 33 , 33 },
+					{ 14 , 33 , 33 , 33 , 33 , 33 , 33 , 33 },
+					{ 45 , 45 , 45 , 88 , 45 , 45 , 45 , 45 },
+					{ 88 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
+                    { 99 , 0 , 0 , 0 , 0 , 0 , 0 , 0 }
+                    };
+
+void miPrintf(char* s, int cont) {
+    int i;
+    for (i=0;i<cont;i++)
+        miString[i]=s[i];
+    miPrintf_flag=1;
+    cuentaString=cont;
+}
+
+int calcTrans(char ch) {
+	int tr=0;
+	if ((ch>='0')&&(ch<='9'))	//Digito
+		return(5);
+	switch (ch) {
+		case'+':
+		case'*':
+		case'/':
+		    return(16);
+	}
+    if(ch == '-') return(7);
+	for (tr=4;tr>0;tr--)
+		if (ch==chrTrans[tr])
+			break;
+	return(tr);
+}
+
+int sigEdo(int edo2, int tr) {
+	return(mtzTrans[edo2][tr]);
+}
+
+int ejecutaEdo(int edo2) {
+    static int negativoFlag=0;
+    static int digitosCont=0;
+    static int auxRes=0;
+    
+	switch(edo2) {
+		case 0:
+			break;
+		case 1:
+            //BSP_LEDOff( APP_USB_LED_1);
+            //BSP_LEDOff( APP_USB_LED_2);
+            //BSP_LEDOff( APP_USB_LED_3);
+            LED_Off();
+            LED2_Off();
+            LED3_Off();
+			numeroA=0.0;
+            mult = 1.0;
+            numeroAEsNegativo = 0;
+            numeroBEsNegativo = 0;
+			miPrintf(&chr,1);
+			break;
+        case 2:
+            miPrintf(&chr,1);
+            numeroAEsNegativo = 1;
+            break;
+		case 3:
+		case 4:
+			miPrintf(&chr,1);
+			numeroA*=10;
+			numeroA+=(chr-'0');
+			return(3);
+			break;
+		case 5:
+			miPrintf(&chr,1);
+			break;
+		case 16:
+		case 7:
+			miPrintf(&chr,1);
+			mult*=(float)0.1;
+			numeroA+=(chr-'0')*mult;
+			return 16;
+			break;
+		case 8:
+
+            //BSP_LEDOn(  APP_USB_LED_1);
+            LED2_Off();
+            //BSP_LEDOff( APP_USB_LED_2);
+            LED3_Off();
+            //BSP_LEDOff( APP_USB_LED_3);
+            miPrintf(&chr,1);
+			miPrintf(&chr,1);
+			switch (chr) {
+				case'+':
+					oper=Suma;
+					break;
+				case'-':
+					oper=Resta;
+					break;
+				case'*':
+					oper=Mult;
+					break;
+				case'/':
+					oper=Div;
+					break;
+			}
+			numeroB = 0.0;
+			mult = 1.0;
+			break;
+        case 9:
+            LED_Off();
+            LED2_On();
+            LED3_Off();
+            //BSP_LEDOff( APP_USB_LED_1);
+            //BSP_LEDOn(  APP_USB_LED_2);
+            //BSP_LEDOff( APP_USB_LED_3);
+            miPrintf(&chr,1);
+            numeroBEsNegativo = 1;
+            break;
+		case 10:
+		case 39:
+			miPrintf(&chr,1);
+			numeroB*=10;
+			numeroB+=(chr-'0');
+			return(10);
+			break;
+		case 66:
+            LED_Off();
+            LED2_Off();
+            LED3_On();
+            //BSP_LEDOff( APP_USB_LED_1);
+            //BSP_LEDOff( APP_USB_LED_2);
+            //BSP_LEDOn(  APP_USB_LED_3);
+			miPrintf(&chr,1);
+			break;
+		case 14:
+			miPrintf(&chr,1);
+			mult*=0.1;
+			numeroB+=(chr-'0')*mult;
+			return 33;
+			break;
+		case 45:
+                LED_Off();
+                LED2_Off();
+                LED3_On();
+                //BSP_LEDOff( APP_USB_LED_1);
+                //BSP_LEDOff( APP_USB_LED_2);
+                //BSP_LEDOn(  APP_USB_LED_3);
+                miPrintf(&chr,1);
+				miPrintf(&chr,1);
+				break;
+		case 88:
+				LED_On();
+                LED2_On();
+                LED3_On();
+                //BSP_LEDOn( APP_USB_LED_1);
+                //BSP_LEDOn( APP_USB_LED_2);
+                //BSP_LEDOn( APP_USB_LED_3);                                
+                if(numeroAEsNegativo){
+                    numeroA = numeroA * -1;
+                }
+
+                if(numeroBEsNegativo){
+                    numeroB = numeroB * -1;
+                }
+                 
+				switch(oper) {
+					case Suma:
+							res=numeroA+numeroB;
+							break;
+					case Resta:
+							res=numeroA-numeroB;
+							break;
+					case Mult:
+							res=numeroA*numeroB;
+							break;
+					case Div:
+							if (numeroB)
+								res=numeroA/numeroB;
+							else
+								res=-1;
+							break;
+				}
+				//printf("%d\n",res);
+                if (res<0) {
+                    negativoFlag=1;
+                } else {
+                    negativoFlag=0;
+                }
+                auxRes=res;
+                digitosCont=0;
+                do {
+                    auxRes/=10;
+                    digitosCont++;
+                } while(auxRes);
+                //agregar que imprima los puntos para float y el float
+                snprintf(otroString, sizeof(otroString), "=%f", res);
+                otroString[digitosCont+3+negativoFlag]=0x0D; //Carriage return
+                miPrintf(&otroString[0],digitosCont+3+negativoFlag+1);
+				return(0);
+		case 99://ya entra
+        				//printf("\n<<<Captura cancelada>>>\n");
+				return(0);	//Estado aceptor, rompe la rutina y marca estado de salida
+				break;
+	}
+	return(edo2);	//Para estados no aceptores regresar el estado ejecutado
+}
+
+
 
 void APP_Tasks(void)
 {
