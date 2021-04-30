@@ -97,21 +97,23 @@ APP_DATA appData;
 #define EDO_COUNT 17
 
 char chr=0;
-float acum1=0.0;
-float acum2=0.0;
+float numeroA=0.0;
+float numeroB=0.0;
 float res=0.0;
 float mult=1.0;
 enum Oper{Suma,Resta,Mult,Div};
 enum Oper oper;
-
+int startIndex = 0, endIndex = 0; 
+char numeroLeido[10];
+char numeroAEscribir[11];
 int edo=0;
 int edoAnt=0;
 int trans=0;
 int miPrintf_flag=0;
 int cuentaString=0;
 char otroString[] = "                                 ";
-int isNeg1 = 0;
-int isNeg2 = 0;
+int numeroAEsNegativo = 0;
+int numeroBEsNegativo = 0;
 uint8_t CACHE_ALIGN miString[] = "                                 ";
 
 
@@ -175,21 +177,27 @@ int ejecutaEdo(int edo2) {
 		case 0:
 			break;
 		case 1:
-			acum1=0.0;
+            //BSP_LEDOff( APP_USB_LED_1);
+            //BSP_LEDOff( APP_USB_LED_2);
+            //BSP_LEDOff( APP_USB_LED_3);
+            LED_Off();
+            LED2_Off();
+            LED3_Off();
+			numeroA=0.0;
             mult = 1.0;
-            isNeg1 = 0;
-            isNeg2 = 0;
+            numeroAEsNegativo = 0;
+            numeroBEsNegativo = 0;
 			miPrintf(&chr,1);
 			break;
         case 2:
             miPrintf(&chr,1);
-            isNeg1 = 1;
+            numeroAEsNegativo = 1;
             break;
 		case 3:
 		case 4:
 			miPrintf(&chr,1);
-			acum1*=10;
-			acum1+=(chr-'0');
+			numeroA*=10;
+			numeroA+=(chr-'0');
 			return(3);
 			break;
 		case 5:
@@ -199,10 +207,17 @@ int ejecutaEdo(int edo2) {
 		case 7:
 			miPrintf(&chr,1);
 			mult*=(float)0.1;
-			acum1+=(chr-'0')*mult;
+			numeroA+=(chr-'0')*mult;
 			return 6;
 			break;
 		case 8:
+
+            //BSP_LEDOn(  APP_USB_LED_1);
+            LED2_Off();
+            //BSP_LEDOff( APP_USB_LED_2);
+            LED3_Off();
+            //BSP_LEDOff( APP_USB_LED_3);
+            miPrintf(&chr,1);
 			miPrintf(&chr,1);
 			switch (chr) {
 				case'+':
@@ -218,60 +233,85 @@ int ejecutaEdo(int edo2) {
 					oper=Div;
 					break;
 			}
-			acum2=0.0;
+			numeroB=0.0;
 			mult = 1.0;
 			break;
         case 9:
+            LED_Off();
+            LED2_On();
+            LED3_Off();
+            //BSP_LEDOff( APP_USB_LED_1);
+            //BSP_LEDOn(  APP_USB_LED_2);
+            //BSP_LEDOff( APP_USB_LED_3);
             miPrintf(&chr,1);
-            isNeg2 = 1;
+            numeroBEsNegativo = 1;
             break;
 		case 10:
 		case 11:
 			miPrintf(&chr,1);
-			acum2*=10;
-			acum2+=(chr-'0');
+			numeroB*=10;
+			numeroB+=(chr-'0');
 			return(10);
 			break;
 		case 12:
+            LED_Off();
+            LED2_Off();
+            LED3_On();
+            //BSP_LEDOff( APP_USB_LED_1);
+            //BSP_LEDOff( APP_USB_LED_2);
+            //BSP_LEDOn(  APP_USB_LED_3);
 			miPrintf(&chr,1);
 			break;
 		case 13:
 		case 14:
 			miPrintf(&chr,1);
 			mult*=(float)0.1;
-			acum2+=(chr-'0')*mult;
+			numeroB+=(chr-'0')*mult;
 			return 13;
 			break;
 		case 15:
+                LED_Off();
+                LED2_Off();
+                LED3_On();
+                //BSP_LEDOff( APP_USB_LED_1);
+                //BSP_LEDOff( APP_USB_LED_2);
+                //BSP_LEDOn(  APP_USB_LED_3);
+                miPrintf(&chr,1);
 				miPrintf(&chr,1);
 				break;
 		case 16:
 				LED_On();
                 LED2_On();
                 LED3_On();
-                                
-                if(isNeg1)
-                    acum1 *= -1;
-                if(isNeg2)
-                    acum2 *= -1;
+                //BSP_LEDOn( APP_USB_LED_1);
+                //BSP_LEDOn( APP_USB_LED_2);
+                //BSP_LEDOn( APP_USB_LED_3);                                
+                if(numeroAEsNegativo){
+                    numeroA = numeroA * -1;
+                }
+
+                if(numeroBEsNegativo){
+                    numeroB = numeroB * -1;
+                }
                  
 				switch(oper) {
 					case Suma:
-							res=acum1+acum2;
+							res=numeroA+numeroB;
 							break;
 					case Resta:
-							res=acum1-acum2;
+							res=numeroA-numeroB;
 							break;
 					case Mult:
-							res=acum1*acum2;
+							res=numeroA*numeroB;
 							break;
 					case Div:
-							if (acum2)
-								res=acum1/acum2;
+							if (numeroB)
+								res=numeroA/numeroB;
 							else
 								res=-1;
 							break;
 				}
+				//printf("%d\n",res);
                 if (res<0) {
                     negativoFlag=1;
                 } else {
@@ -283,12 +323,13 @@ int ejecutaEdo(int edo2) {
                     auxRes/=10;
                     digitosCont++;
                 } while(auxRes);
-              
+                //agregar que imprima los puntos para float y el float
                 snprintf(otroString, sizeof(otroString), "=%f", res);
                 otroString[digitosCont+3+negativoFlag]=0x0D; //Carriage return
                 miPrintf(&otroString[0],digitosCont+3+negativoFlag+1);
 				return(0);
-		case 99:
+		case 99://nunca entra
+        				//printf("\n<<<Captura cancelada>>>\n");
 				return(0);	//Estado aceptor, rompe la rutina y marca estado de salida
 				break;
 	}
@@ -768,9 +809,6 @@ void APP_Tasks(void)
                     if((appData.cdcReadBuffer[i] != 0x0A) && (appData.cdcReadBuffer[i] != 0x0D))
                     {
                         //appData.cdcWriteBuffer[i] = appData.cdcReadBuffer[i] + 1;
-                        
-                        //El c�digo de la calculadora funciona con la sintaxis (1234+1)=
-                        // el PIC32MZ regresar� el resultado en justo despu�s del caracter '='
                         chr=appData.cdcReadBuffer[i];
                         trans=calcTrans(chr);	//Calcular la transici�n seg�n la entrada del teclado
                         if (trans) {			//Validar por transici�n valida (la transici�n 0 es inv�lida)

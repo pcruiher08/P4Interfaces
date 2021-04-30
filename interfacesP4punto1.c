@@ -474,9 +474,7 @@ bool estoyListo = false;
 int cuantosDigitosVan = 0;
 char auxString[] = "                                 ";
 
-					//0-->Inválida
-					//6-->Digito
-					//7-->Operador
+
 int chrTrans[TRANS_COUNT]=
 					{ 0,'(',')','=',  8, 27, 6 , 7};
 int mtzTrans[EDO_COUNT][TRANS_COUNT]={
