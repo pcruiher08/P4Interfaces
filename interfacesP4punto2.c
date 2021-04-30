@@ -457,7 +457,7 @@ char chr=0;
 float numeroA=0.0;
 float numeroB=0.0;
 float res=0.0;
-float mult=1.0;
+float producto=1.0;
 enum Oper{Suma,Resta,Mult,Div};
 enum Oper oper;
 int startIndex = 0, endIndex = 0; 
@@ -522,16 +522,16 @@ int calcTrans(char ch) {
 	return(tr);
 }
 
-int sigEdo(int edo2, int tr) {
-	return(mtzTrans[edo2][tr]);
+int sigEdo(int estado, int tr) {
+	return(mtzTrans[estado][tr]);
 }
 
-int ejecutaEdo(int edo2) {
+int ejecutaEdo(int estado) { //como la avenida del estado xd
     static int negativoFlag=0;
     static int digitosCont=0;
     static int auxRes=0;
     
-	switch(edo2) {
+	switch(estado) {
 		case 0:
 			break;
 		case 1:
@@ -542,7 +542,7 @@ int ejecutaEdo(int edo2) {
             LED2_Off();
             LED3_Off();
 			numeroA=0.0;
-            mult = 1.0;
+            producto = 1.0;
             numeroAEsNegativo = 0;
             numeroBEsNegativo = 0;
 			miPrintf(&chr,1);
@@ -564,8 +564,8 @@ int ejecutaEdo(int edo2) {
 		case 16:
 		case 7:
 			miPrintf(&chr,1);
-			mult*=(float)0.1;
-			numeroA+=(chr-'0')*mult;
+			producto*=(float)0.1;
+			numeroA+=(chr-'0')*producto;
 			return 16;
 			break;
 		case 8:
@@ -592,7 +592,7 @@ int ejecutaEdo(int edo2) {
 					break;
 			}
 			numeroB = 0.0;
-			mult = 1.0;
+			producto = 1.0;
 			break;
         case 9:
             LED_Off();
@@ -622,8 +622,8 @@ int ejecutaEdo(int edo2) {
 			break;
 		case 14:
 			miPrintf(&chr,1);
-			mult*=0.1;
-			numeroB+=(chr-'0')*mult;
+			producto*=0.1;
+			numeroB+=(chr-'0')*producto;
 			return 33;
 			break;
 		case 45:
@@ -658,7 +658,7 @@ int ejecutaEdo(int edo2) {
 					case Resta:
 							res=numeroA-numeroB;
 							break;
-					case Mult:
+					case producto:
 							res=numeroA*numeroB;
 							break;
 					case Div:
@@ -690,7 +690,7 @@ int ejecutaEdo(int edo2) {
 				return(0);	//Estado aceptor, rompe la rutina y marca estado de salida
 				break;
 	}
-	return(edo2);	//Para estados no aceptores regresar el estado ejecutado
+	return(estado);	//Para estados no aceptores regresar el estado ejecutado
 }
 
 
