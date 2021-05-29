@@ -495,7 +495,6 @@ int mtzTrans[EDO_COUNT][TRANS_COUNT]={
 					{ 14 , 33 , 33 , 33 , 33 , 33 , 33 , 33 },
 					{ 45 , 45 , 45 , 88 , 45 , 45 , 45 , 45 },
 					{ 88 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
-                    { 99 , 0 , 0 , 0 , 0 , 0 , 0 , 0 }
                     };
 
 void miPrintf(char* s, int cont) {
