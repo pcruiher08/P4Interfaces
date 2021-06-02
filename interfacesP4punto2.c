@@ -433,13 +433,13 @@ int mtzTrans[EDO_COUNT][TRANS_COUNT]={
 					{ 7 , 16 , 16 , 16 , 16 , 16 , 16 , 16 },
 					{ 8 , 8 , 8 , 8 , 8 , 10 , 8 , 9 },
                     { 9 , 9 , 9 , 9 , 9 , 10 , 9 , 9 },
-					{ 10 , 10 , 10 , 10 , 66 , 39 , 10 , 10 },
-					{ 39 , 10 , 10 , 10 , 10 , 10 , 10 , 10 },
-					{ 66 , 66 , 66 , 66 , 66 , 33 , 66 , 66 },
-					{ 33 , 33 , 45 , 33 , 33 , 14 , 33 , 33 },
-					{ 14 , 33 , 33 , 33 , 33 , 33 , 33 , 33 },
-					{ 45 , 45 , 45 , 88 , 45 , 45 , 45 , 45 },
-					{ 88 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
+					{ 10 , 10 , 10 , 10 , 12 , 11 , 10 , 10 },
+					{ 11 , 10 , 10 , 10 , 10 , 10 , 10 , 10 },
+					{ 12 , 12 , 12 , 12 , 12 , 13 , 12 , 12 },
+					{ 13 , 13 , 14 , 13 , 13 , 14 , 13 , 13 },
+					{ 14 , 13 , 13 , 13 , 13 , 13 , 13 , 13 },
+					{ 14 , 14 , 14 , 99 , 14 , 14 , 14 , 14 },
+					{ 99 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
                     };
 
 void miPrintf(char* s, int cont) {
@@ -546,7 +546,7 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
             numeroBEsNegativo = 1;
             break;
 		case 10:
-		case 39:
+		case 11:
             LED_Off();
             LED2_On();
             LED3_Off();
@@ -558,7 +558,7 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
 			numeroB+=(chr-'0');
 			return(10); //antes estado 5
 			break;
-		case 66:
+		case 12:
             LED_Off();
             LED2_Off();
             LED3_On();
@@ -571,9 +571,9 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
 			miPrintf(&chr,1);
 			producto*=0.1;
 			numeroB+=(chr-'0')*producto;
-			return 33;
+			return 13;
 			break;
-		case 45:
+		case 14:
                 LED_Off();
                 LED2_Off();
                 LED3_On();
@@ -582,7 +582,7 @@ int ejecutaEdo(int estado) { //como la avenida del estado xd
                 //BSP_LEDOn(  APP_USB_LED_3);
 				miPrintf(&chr,1);
 				break;
-		case 88:
+		case 99:
 				LED_On();
                 LED2_On();
                 LED3_On();
